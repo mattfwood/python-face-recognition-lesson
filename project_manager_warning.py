@@ -27,6 +27,7 @@ face_names = []
 process_this_frame = True
 project_managers = ['cole', 'clark', 'john', 'sean']
 person_count = 0
+found_faces = []
 
 while True:
     # Grab a single frame of video
@@ -42,10 +43,6 @@ while True:
     if process_this_frame:
         # Find all the faces and face encodings in the current frame of video
         face_locations = face_recognition.face_locations(rgb_small_frame)
-
-        if len(face_locations) is 0:
-            print(f'PERSON COUNT CHANGE: {len(face_locations)}')
-            person_count = 0
 
         face_encodings = face_recognition.face_encodings(
             rgb_small_frame, face_locations)
@@ -63,6 +60,15 @@ while True:
                 name = known_face_names[first_match_index]
 
             face_names.append(name)
+
+        # Detect changes in the found faces
+        if face_names != found_faces:
+            print(f'Found Faces Change: {face_names}')
+            found_faces = face_names
+            for name in face_names:
+                if name in project_managers:
+                    print('PROJECT MANAGER DETECTED: {}'.format(name))
+                    notify('Project Manager Alert', f'{name.capitalize()} is watching...')
 
     # toggle boolean from true to false or vice versa
     process_this_frame = not process_this_frame
@@ -85,14 +91,11 @@ while True:
         cv2.putText(frame, name, (left + 6, bottom - 6),
                     font, 1.0, (255, 255, 255), 1)
 
-        if person_count != len(face_locations):
-            person_count = len(face_locations)
-            print(f'Person Count Change: {person_count}')
-            print(name)
-            print(project_managers)
-            if name in project_managers:
-                print('PROJECT MANAGER DETECTED: {}'.format(name))
-                notify('Project Manager Alert', f'{name.capitalize()} is watching...')
+        # if person_count != len(face_locations):
+        #     person_count = len(face_locations)
+        #     if name in project_managers:
+        #         print('PROJECT MANAGER DETECTED: {}'.format(name))
+        #         notify('Project Manager Alert', f'{name.capitalize()} is watching...')
 
     # Display the resulting image
     cv2.imshow('Video', frame)
